@@ -92,3 +92,4 @@ Heatmap(
   cluster_columns = FALSE,
   rect_gp = gpar(col = "white", lwd = 0.5)
 )
+  
