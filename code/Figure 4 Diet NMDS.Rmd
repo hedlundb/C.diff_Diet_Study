@@ -195,3 +195,4 @@ e1 <-ggplot(data=orddat) +
   ylim (-4,6)
 print(e1)
 ```
+  
