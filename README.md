@@ -8,7 +8,7 @@ Files containing the original unfiltered sequences are available from the NCBI-S
 
 This repository contains following folders - 
 
-- data                                 # raw data generated using QIIME2-2018.6
+- data/                                 # raw data generated using QIIME2-2018.6
 
   - filtered-final-table.qza           # OTU table
   - final-taxonomy.qza                 # OTU taxonomy
