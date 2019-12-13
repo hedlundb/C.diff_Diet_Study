@@ -88,3 +88,4 @@ qiime tools export merged-taxonomy.qza --output-dir forphyloseq/
 qiime tools export --input-path rooted-merged-tree.qza --output-path forphyloseq/tree
 
 # Make phyloseq object using OTU/SV table, taxonomy table, phylogenetic tree and metedata file in phyloseq for downstream analysis.
+  
