@@ -40,3 +40,4 @@ simpson + theme(axis.text.x = element_text(angle = 90, hjust = 1, color='black',
   scale_fill_manual(values=c("#b24b01","#6e01b2", "#00B0F0","#9BBB59","#FF0000"))
 
 
+  
