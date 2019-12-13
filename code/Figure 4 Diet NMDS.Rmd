@@ -1,0 +1,197 @@
+---
+title: "NMDS Plots Figure 4"
+author: "Shrikant Bhute"
+date: "August 17, 2018"
+output: html_document
+---
+
+# This script will produce alpha diversity data as represented in Figure 3 and the NMDS plots for different diet treatments across the experimental timeline as represented in Figure 4.
+
+```{r}
+# Activate the required R libraries for the analysis
+library("phyloseq")
+library("grid")
+library("RColorBrewer")
+library("vegan")
+library("ggplot2")
+library("dplyr")
+library("data.table")
+library("knitr")
+library("tidyverse")
+library("broom")
+```
+
+
+```{r}
+otumat=read.table('15000-table.txt', head=T, sep="\t", row.names=1)
+OTU.a=otu_table(otumat, taxa_are_rows=TRUE)
+temp_tax=read.table('tax.txt', head=T, sep="\t", row.names=1)
+TAX.a=tax_table(as.matrix(temp_tax))
+map <- read.table('metadata.txt', header = TRUE,sep="\t",row.names = 1)
+
+map$HPDay<-factor((map$HPDay), levels = c("HighProtein0","HighProtein3","HighProtein10","HighProtein13","HighProtein16","HighProtein17","HighProtein18","HighProtein19","HighProtein21","Blank"))
+
+
+map$StdDay<-factor((map$StdDay), levels = c("Standard0","Standard3","Standard10","Standard13","Standard16","Standard17","Standard18","Standard19","Standard20","Standard21","Standard22","Standard30","Standard47","Blank"))
+
+map$HFDay<-factor((map$HFDay), levels = c("HighFat0","HighFat3","HighFat10","HighFat13","HighFat16","HighFat17","HighFat18","HighFat19","HighFat20","HighFat21","HighFat22","HighFat30","HighFat47","Blank"))
+
+
+map$HCDay<-factor((map$HCDay), levels = c("HighCarb0","HighCarb3","HighCarb10","HighCarb13","HighCarb16","HighCarb17","HighCarb18","HighCarb19","HighCarb20","HighCarb21","HighCarb22","HighCarb30","HighCarb47","Blank"))
+
+
+map$NegDay<-factor((map$NegDay), levels = c("Standard(-CDI)0","Standard(-CDI)3","Standard(-CDI)10","Standard(-CDI)13","Standard(-CDI)16","Standard(-CDI)17","Standard(-CDI)18","Standard(-CDI)19","Standard(-CDI)20","Standard(-CDI)21","Standard(-CDI)22","Standard(-CDI)30","Standard(-CDI)47","Blank"))
+map.a <-sample_data(map)
+pseq=phyloseq(OTU.a, TAX.a,map.a) # This is your phyloseq object
+pseq
+```
+
+```{r}
+# Raw data for Figure 3
+# Script for calculating alpha diversity
+
+alpha5000<- estimate_richness(pseq, split = TRUE, measures = c("Observed", "Chao1", "Shannon", "Simpson"))
+
+
+alpha15000<- estimate_richness(pseq, split = TRUE, measures = c("Observed", "Chao1", "Shannon", "Simpson"))
+```
+
+
+```{r}
+# Standard diet infected control. Figure 4a.
+
+shape.def = c("HighProtein"=21, "Standard"=25, "Standard(-CDI)"=24, "HighCarb"=22, "HighFat"=23)
+fill.def = c("Standard(-CDI)0"="#5e6063","Standard(-CDI)3"="#5e6063","Standard(-CDI)10"="#5e6063","Standard(-CDI)13"="#5e6063","Standard(-CDI)17"="#5e6063","Standard(-CDI)18"="#5e6063","Standard(-CDI)19"="#5e6063","Standard(-CDI)20"="#5e6063","Standard(-CDI)21"="#5e6063","Standard(-CDI)22"="#5e6063","Standard(-CDI)30"="#5e6063","Standard(-CDI)47"="#5e6063", "Standard0"="#eee1f7", "Standard3"="#efdbfc","Standard10"="#dac0ea","Standard13"="#d2b0e8","Standard17"="#c18ae2","Standard18"="#c58fe8","Standard19"="#bc7be5","Standard20"="#b368e2","Standard21"="#a953e0","Standard22"="#9e3ddb","Standard30"="#6e0aad","Standard47"="#6e01b2")
+
+set.seed(100)
+std.bray<-ordinate(pseq,"NMDS","bray",maxit=5000,k=3)
+
+
+orddat = sample_data(pseq)
+orddat$x = std.bray$points[rownames(orddat),1]
+orddat$y = std.bray$points[rownames(orddat),2]
+orddat$z = std.bray$points[rownames(orddat),3]
+
+orddat = orddat[rev(order(orddat$StdDay)),]
+  b1 <-ggplot(data=orddat) +
+    theme_grey() + 
+    theme(axis.text.x = element_text(face="bold", color="black", size=14)) + 
+    theme(axis.text.y = element_text(face="bold", color="black", size=14)) + 
+    theme(axis.title.x = element_text(face="bold",size = 14)) + 
+    theme(axis.title.y = element_text(face="bold",size = 14))  +
+    ggtitle("SLD 15000") +
+    scale_shape_manual(values = shape.def) +
+    scale_fill_manual(values = fill.def, na.value="#dddddd") +
+    geom_point(size=4, stroke=1, colour = "black", aes(x=x,y=y, shape=as.character(Diet), fill=as.character(StdDay)))+
+    theme_minimal() +
+    guides(fill=guide_legend(override.aes = list(shape=25))) +
+    stat_ellipse(data = orddat[orddat$StdEllipse == "norm"], aes(x=x,y=y)) +
+    stat_ellipse(data = orddat[orddat$StdEllipse == "dys"], aes(x=x,y=y)) +
+    stat_ellipse(data = orddat[orddat$StdEllipse == "CDI"], aes(x=x,y=y)) +
+    stat_ellipse(data = orddat[orddat$StdEllipse == "recovery"], aes(x=x,y=y))
+  print(b1)
+```
+
+```{r}
+# High-carbohydrate diet. Figure 4b.
+
+shape.def = c("HighProtein"=21, "Standard"=25, "Standard(-CDI)"=24, "HighCarb"=22, "HighFat"=23)
+
+fill.def = c("Standard(-CDI)0"="#5e6063","Standard(-CDI)3"="#5e6063","Standard(-CDI)10"="#5e6063","Standard(-CDI)13"="#5e6063","Standard(-CDI)17"="#5e6063","Standard(-CDI)18"="#5e6063","Standard(-CDI)19"="#5e6063","Standard(-CDI)20"="#5e6063","Standard(-CDI)21"="#5e6063","Standard(-CDI)22"="#5e6063","Standard(-CDI)30"="#5e6063","Standard(-CDI)47"="#5e6063", "HighCarb10"="#6bd7ff","HighCarb13"="#5dd2fc", "HighCarb17"="#00B0F0","HighCarb18"="#0095cc","HighCarb19"="#007caa","HighCarb20"="#006d96","HighCarb21"="#006d96","HighCarb22"="#00658c","HighCarb30"="#00445e","HighCarb47"="#013447","HighCarb0"="#bfedff", "blank"="#dddddd")
+set.seed(10)
+hc.bray<-ordinate(pseq,"NMDS","bray",maxit=5000,k=3)
+
+orddat = sample_data(pseq)
+orddat$x = hc.bray$points[rownames(orddat),1]
+orddat$y = hc.bray$points[rownames(orddat),2]
+orddat$z = hc.bray$points[rownames(orddat),3]
+
+orddat = orddat[rev(order(orddat$HCDay)),]
+  c1 <-ggplot(data=orddat) +
+    theme_grey() + 
+    theme(axis.text.x = element_text(face="bold", color="black", size=14)) + 
+    theme(axis.text.y = element_text(face="bold", color="black", size=14)) + 
+    theme(axis.title.x = element_text(face="bold",size = 14)) + 
+    theme(axis.title.y = element_text(face="bold",size = 14)) + 
+    ggtitle("High Carb 15000") +
+    scale_shape_manual(values = shape.def) +
+    scale_fill_manual(values = fill.def, na.value="#dddddd") +
+    geom_point(size=4, stroke=1, colour = "black", aes(x=x,y=y, shape=as.character(Diet), fill=as.character(HCDay)))+
+    theme_minimal() +
+    guides(fill=guide_legend(override.aes = list(shape=22))) +
+    stat_ellipse(data = orddat[orddat$HCEllipse == "norm"], aes(x=x,y=y)) +
+    stat_ellipse(data = orddat[orddat$HCEllipse == "dys"], aes(x=x,y=y)) +
+    stat_ellipse(data = orddat[orddat$HCEllipse == "HC"], aes(x=x,y=y)) +
+    stat_ellipse(data = orddat[orddat$HCEllipse == "CDI"], aes(x=x,y=y)) +
+    stat_ellipse(data = orddat[orddat$HCEllipse == "recovery"], aes(x=x,y=y))
+  print(c1)
+```
+
+```{r}
+# High-Fat/Low protein diet. Figure 4c.
+
+shape.def = c("HighProtein"=21, "Standard"=25, "Standard(-CDI)"=24, "HighCarb"=22, "HighFat"=23)
+fill.def = c("Standard(-CDI)0"="#5e6063","Standard(-CDI)3"="#5e6063","Standard(-CDI)10"="#5e6063","Standard(-CDI)13"="#5e6063","Standard(-CDI)17"="#5e6063","Standard(-CDI)18"="#5e6063","Standard(-CDI)19"="#5e6063","Standard(-CDI)20"="#5e6063","Standard(-CDI)21"="#5e6063","Standard(-CDI)22"="#5e6063","Standard(-CDI)30"="#5e6063","Standard(-CDI)47"="#5e6063", "HighFat0"="#e9fcc2", "HighFat3" = "#e2f9b1","HighFat10"="#c5e288","HighFat13"="#bddd7a", "HighFat17"="#9BBB59","HighFat18"="#87a34e","HighFat19"="#6f8740","HighFat20"="#627738","HighFat21"="#5e7235","HighFat30"="#475627", "HighFat47"="#414f24")
+set.seed(10)
+hf.bray<-ordinate(pseq,"NMDS","bray",maxit=5000,k=3)
+
+orddat = sample_data(pseq)
+orddat$x = hf.bray$points[rownames(orddat),1]
+orddat$y = hf.bray$points[rownames(orddat),2]
+orddat$z = hf.bray$points[rownames(orddat),3]
+
+orddat = orddat[rev(order(orddat$HFDay)),]
+  d1<-ggplot(data=orddat) +
+    theme_grey() +
+    theme(axis.text.x = element_text(face="bold", color="black", size=14)) +
+    theme(axis.text.y = element_text(face="bold", color="black", size=14)) +
+    theme(axis.title.x = element_text(face="bold",size = 14)) +
+    theme(axis.title.y = element_text(face="bold",size = 14)) +
+    ggtitle("High Fat 15000")+ 
+    scale_shape_manual(values = shape.def) +
+    scale_fill_manual(values = fill.def, na.value="#dddddd") +
+    geom_point(size=4, stroke=1, colour = "black", aes(x=x,y=y, shape=as.character(Diet), fill=as.character(HFDay)))+
+    theme_minimal() +
+    guides(fill=guide_legend(override.aes = list(shape=23)))+ 
+    stat_ellipse(data = orddat[orddat$HFEllipse == "norm"], aes(x=x,y=y))+ 
+    stat_ellipse(data = orddat[orddat$HFEllipse == "dys"], aes(x=x,y=y)) +
+    stat_ellipse(data = orddat[orddat$HFEllipse == "HF"], aes(x=x,y=y)) +
+    stat_ellipse(data = orddat[orddat$HFEllipse == "CDI"], aes(x=x,y=y)) +
+    stat_ellipse(data = orddat[orddat$HFEllipse == "recovery"], aes(x=x,y=y))
+  print(d1)
+```
+
+```{r}
+# High-fat/high-protein diet. Figure 4d.
+
+shape.def = c("HighProtein"=21, "Standard"=25, "Standard(-CDI)"=24, "HighCarb"=22, "HighFat"=23)
+fill.def = c("Standard(-CDI)0"="#5e6063","Standard(-CDI)3"="#5e6063","Standard(-CDI)10"="#5e6063","Standard(-CDI)13"="#5e6063","Standard(-CDI)17"="#5e6063","Standard(-CDI)18"="#5e6063","Standard(-CDI)19"="#5e6063","Standard(-CDI)20"="#5e6063","Standard(-CDI)21"="#5e6063","Standard(-CDI)22"="#5e6063","Standard(-CDI)30"="#5e6063","Standard(-CDI)47"="#5e6063","HighProtein0" = "#ffcece", "HighProtein3" = "#ffbaba", "HighProtein10" = "#fc7979","HighProtein13" = "#ff6363","HighProtein17" = "#FF0000","HighProtein18" = "#d10000","HighProtein19" = "#aa0000","HighProtein21" = "#870000")
+set.seed(10)
+hp.bray<-ordinate(pseq,"NMDS","bray",maxit=5000,k=3)
+
+orddat = sample_data(pseq)
+orddat$x = hp.bray$points[rownames(orddat),1]
+orddat$y = hp.bray$points[rownames(orddat),2]
+orddat$z = hp.bray$points[rownames(orddat),3]
+
+orddat = orddat[rev(order(orddat$HPDay)),]
+e1 <-ggplot(data=orddat) +
+  theme_grey() + 
+  theme(axis.text.x = element_text(face="bold", color="black", size=14)) + 
+  theme(axis.text.y = element_text(face="bold", color="black", size=14)) + 
+  theme(axis.title.x = element_text(face="bold",size = 14)) + 
+  theme(axis.title.y = element_text(face="bold",size = 14)) + 
+  ggtitle("High Protein 15000") +
+  scale_shape_manual(values = shape.def) +
+  scale_fill_manual(values = fill.def, na.value="#dddddd") +
+  geom_point(size=4, stroke=1, colour = "black", aes(x=x,y=y, shape=as.character(Diet), fill=as.character(HPDay)))+
+  theme_minimal() +
+  guides(fill=guide_legend(override.aes = list(shape=21))) +
+  stat_ellipse(data = orddat[orddat$HPEllipse == "norm"], aes(x=x,y=y)) +
+  stat_ellipse(data = orddat[orddat$HPEllipse == "dys"], aes(x=x,y=y)) +
+  stat_ellipse(data = orddat[orddat$HPEllipse == "HP"], aes(x=x,y=y)) +
+  stat_ellipse(data = orddat[orddat$HPEllipse == "CDI"], aes(x=x,y=y)) +
+  xlim (-1,4)+
+  ylim (-4,6)
+print(e1)
+```

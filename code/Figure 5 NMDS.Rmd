@@ -1,0 +1,384 @@
+---
+title: "NMDS Plots Figure 5"
+author: "Shrikant Bhute"
+date: "December 5, 2019"
+output: html_document
+---
+# This script will produce the NMDS plots for key days across the experimental timeline as represented in Figure 5.
+
+
+```{r}
+otumat=read.table('5000-table.txt', head=T, sep="\t", row.names=1)
+OTU.a=otu_table(otumat, taxa_are_rows=TRUE)
+temp_tax=read.table('tax.txt', head=T, sep="\t", row.names=1)
+TAX.a=tax_table(as.matrix(temp_tax))
+map <- read.table('metadata.txt', header = TRUE,sep="\t",row.names = 1)
+
+map$HPDay<-factor((map$HPDay), levels = c("HighProtein0","HighProtein3","HighProtein10","HighProtein13","HighProtein16","HighProtein17","HighProtein18","HighProtein19","HighProtein21","Blank"))
+
+
+map$StdDay<-factor((map$StdDay), levels = c("Standard0","Standard3","Standard10","Standard13","Standard16","Standard17","Standard18","Standard19","Standard20","Standard21","Standard22","Standard30","Standard47","Blank"))
+
+map$HFDay<-factor((map$HFDay), levels = c("HighFat0","HighFat3","HighFat10","HighFat13","HighFat16","HighFat17","HighFat18","HighFat19","HighFat20","HighFat21","HighFat22","HighFat30","HighFat47","Blank"))
+
+
+map$HCDay<-factor((map$HCDay), levels = c("HighCarb0","HighCarb3","HighCarb10","HighCarb13","HighCarb16","HighCarb17","HighCarb18","HighCarb19","HighCarb20","HighCarb21","HighCarb22","HighCarb30","HighCarb47","Blank"))
+
+
+map$NegDay<-factor((map$NegDay), levels = c("Standard(-CDI)0","Standard(-CDI)3","Standard(-CDI)10","Standard(-CDI)13","Standard(-CDI)16","Standard(-CDI)17","Standard(-CDI)18","Standard(-CDI)19","Standard(-CDI)20","Standard(-CDI)21","Standard(-CDI)22","Standard(-CDI)30","Standard(-CDI)47","Blank"))
+map$Day<-factor((map$Day),levels= c("0","3","10","13","17","18","19","20","21","22","30","47"))
+map.a <-sample_data(map)
+pseq=phyloseq(OTU.a, TAX.a,map.a) # This is your phyloseq object
+pseq
+```
+
+```{r}
+# Filter Day 13 samples
+
+d13 <- subset_samples(pseq, Day == "13")
+d13
+
+colvec1 = c(
+"HighProtein" = "#FF0000",
+"HighCarb" = "#00B0F0",
+"HighFat" = "#9BBB59",
+"Standard" = "#6e01b2",
+"Standard(-CDI)" = "#b24b01"
+)
+set.seed(10)
+d13.bray <- ordinate(d13, "NMDS", "bray", maxit = 5000, k = 3)
+
+orddat = sample_data(d13)
+orddat$x = d13.bray$points[rownames(orddat), 1]
+orddat$y = d13.bray$points[rownames(orddat), 2]
+orddat$z = d13.bray$points[rownames(orddat), 3]
+
+shape.def = c(
+"HighProtein" = 21,
+"Standard" = 25,
+"Standard(-CDI)" = 24,
+"HighCarb" = 22,
+"HighFat" = 23
+)
+orddat = orddat[rev(order(orddat$HCDay)), ]
+day13 <- ggplot(data = orddat) +
+geom_point(size = 7,
+stroke = 1.5,
+aes(
+x = x,
+y = y,
+shape = as.character(Diet),
+fill = Diet
+)) +
+theme(axis.text.x = element_text(face = "bold", color = "black", size =
+14)) +
+theme(axis.text.y = element_text(face = "bold", color = "black", size =
+14)) +
+theme(axis.title.x = element_text(face = "bold", size = 14)) +
+theme(axis.title.y = element_text(face = "bold", size = 14)) +
+ggtitle("Day 13") +
+scale_shape_manual(values = shape.def) +
+scale_fill_manual(values = colvec1, na.value = "#dddddd") +
+stat_ellipse(data = orddat[orddat$Diet == "HighCarb"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "HighFat"], aes(x = x, y = y)) +
+stat_ellipse(data = orddat[orddat$Diet == "HighProtein"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "Standard"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "Standard(-CDI)"], aes(x = x, y =
+y)) +
+theme_minimal()
+
+day13
+```
+
+```{r}
+# Filter Day 17 samples
+d17 <- subset_samples(pseq, Day == "17")
+d17
+set.seed(10)
+d17.bray <- ordinate(d17, "NMDS", "bray", maxit = 5000, k = 3)
+
+orddat = sample_data(d17)
+orddat$x = d17.bray$points[rownames(orddat), 1]
+orddat$y = d17.bray$points[rownames(orddat), 2]
+orddat$z = d17.bray$points[rownames(orddat), 3]
+
+shape.def = c(
+"HighProtein" = 21,
+"Standard" = 25,
+"Standard(-CDI)" = 24,
+"HighCarb" = 22,
+"HighFat" = 23
+)
+orddat = orddat[rev(order(orddat$HCDay)), ]
+day17 <- ggplot(data = orddat) +
+geom_point(size = 7,
+stroke = 1.5,
+aes(
+x = x,
+y = y,
+shape = as.character(Diet),
+fill = Diet
+)) +
+theme(axis.text.x = element_text(face = "bold", color = "black", size =
+14)) +
+theme(axis.text.y = element_text(face = "bold", color = "black", size =
+14)) +
+theme(axis.title.x = element_text(face = "bold", size = 14)) +
+theme(axis.title.y = element_text(face = "bold", size = 14)) +
+ggtitle("Day 17") +
+scale_shape_manual(values = shape.def) +
+scale_fill_manual(values = colvec1, na.value = "#dddddd") +
+stat_ellipse(data = orddat[orddat$Diet == "HighCarb"], aes(x = x, y =
+y)) +
+# stat_ellipse(data = orddat[orddat$Diet == "HighFat"], aes(x=x,y=y)) +
+stat_ellipse(data = orddat[orddat$Diet == "HighProtein"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "Standard"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "Standard(-CDI)"], aes(x = x, y =
+y)) +
+theme_minimal()
+
+day17
+```
+
+```{r}
+# Filter Day 18 samples
+
+d18 <- subset_samples(pseq, Day == "18")
+d18
+
+colvec1 = c(
+"HighProtein" = "#FF0000",
+"HighCarb" = "#00B0F0",
+"HighFat" = "#9BBB59",
+"Standard" = "#6e01b2",
+"Standard(-CDI)" = "#b24b01"
+)
+set.seed(10)
+d18.bray <- ordinate(d18, "NMDS", "bray", maxit = 5000, k = 3)
+orddat = sample_data(d18)
+orddat$x = d18.bray$points[rownames(orddat), 1]
+orddat$y = d18.bray$points[rownames(orddat), 2]
+orddat$z = d18.bray$points[rownames(orddat), 3]
+
+shape.def = c(
+"HighProtein" = 21,
+"Standard" = 25,
+"Standard(-CDI)" = 24,
+"HighCarb" = 22,
+"HighFat" = 23
+)
+orddat = orddat[rev(order(orddat$HCDay)), ]
+day18 <- ggplot(data = orddat) +
+geom_point(size = 7,
+stroke = 1.5,
+aes(
+x = x,
+y = y,
+shape = as.character(Diet),
+fill = Diet
+)) +
+theme(axis.text.x = element_text(face = "bold", color = "black", size =
+14)) +
+theme(axis.text.y = element_text(face = "bold", color = "black", size =
+14)) +
+theme(axis.title.x = element_text(face = "bold", size = 14)) +
+theme(axis.title.y = element_text(face = "bold", size = 14)) +
+ggtitle("Day 18") +
+scale_shape_manual(values = shape.def) +
+scale_fill_manual(values = colvec1, na.value = "#dddddd") +
+stat_ellipse(data = orddat[orddat$Diet == "HighCarb"], aes(x = x, y =
+y)) +
+# stat_ellipse(data = orddat[orddat$Diet == "HighFat"], aes(x=x,y=y)) +
+stat_ellipse(data = orddat[orddat$Diet == "HighProtein"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "Standard"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "Standard(-CDI)"], aes(x = x, y =
+y)) +
+theme_minimal() 
+
+day18
+```
+
+```{r}
+# Filter Day 19 samples
+
+d19 <- subset_samples(pseq, Day == "19")
+d19
+
+colvec1 = c(
+"HighProtein" = "#FF0000",
+"HighCarb" = "#00B0F0",
+"HighFat" = "#9BBB59",
+"Standard" = "#6e01b2",
+"Standard(-CDI)" = "#b24b01"
+)
+set.seed(10)
+d19.bray <- ordinate(d19, "NMDS", "bray", maxit = 5000, k = 3)
+orddat = sample_data(d19)
+orddat$x = d19.bray$points[rownames(orddat), 1]
+orddat$y = d19.bray$points[rownames(orddat), 2]
+orddat$z = d19.bray$points[rownames(orddat), 3]
+
+shape.def = c(
+"HighProtein" = 21,
+"Standard" = 25,
+"Standard(-CDI)" = 24,
+"HighCarb" = 22,
+"HighFat" = 23
+)
+orddat = orddat[rev(order(orddat$HCDay)), ]
+day19 <- ggplot(data = orddat) +
+geom_point(size = 7,
+stroke = 1.5,
+aes(
+x = x,
+y = y,
+shape = as.character(Diet),
+fill = Diet
+)) +
+theme(axis.text.x = element_text(face = "bold", color = "black", size =
+14)) +
+theme(axis.text.y = element_text(face = "bold", color = "black", size =
+14)) +
+theme(axis.title.x = element_text(face = "bold", size = 14)) +
+theme(axis.title.y = element_text(face = "bold", size = 14)) +
+ggtitle("Day 19") +
+scale_shape_manual(values = shape.def) +
+scale_fill_manual(values = colvec1, na.value = "#dddddd") +
+stat_ellipse(data = orddat[orddat$Diet == "HighCarb"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "HighFat"], aes(x = x, y = y)) +
+stat_ellipse(data = orddat[orddat$Diet == "HighProtein"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "Standard"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "Standard(-CDI)"], aes(x = x, y =
+y)) +
+theme_minimal()
+
+day19
+```
+
+```{r}
+# Filter Day 30 samples
+
+d30 <- subset_samples(pseq, Day == "30")
+d30
+
+colvec1 = c(
+"HighProtein" = "#FF0000",
+"HighCarb" = "#00B0F0",
+"HighFat" = "#9BBB59",
+"Standard" = "#6e01b2",
+"Standard(-CDI)" = "#b24b01"
+)
+set.seed(10)
+d30.bray <- ordinate(d30, "NMDS", "bray", maxit = 5000, k = 3)
+orddat = sample_data(d30)
+orddat$x = d30.bray$points[rownames(orddat), 1]
+orddat$y = d30.bray$points[rownames(orddat), 2]
+orddat$z = d30.bray$points[rownames(orddat), 3]
+
+shape.def = c(
+"HighProtein" = 21,
+"Standard" = 25,
+"Standard(-CDI)" = 24,
+"HighCarb" = 22,
+"HighFat" = 23
+)
+orddat = orddat[rev(order(orddat$HCDay)), ]
+day30 <- ggplot(data = orddat) +
+geom_point(size = 7,
+stroke = 1.5,
+aes(
+x = x,
+y = y,
+shape = as.character(Diet),
+fill = Diet
+)) +
+theme(axis.text.x = element_text(face = "bold", color = "black", size =
+14)) +
+theme(axis.text.y = element_text(face = "bold", color = "black", size =
+14)) +
+theme(axis.title.x = element_text(face = "bold", size = 14)) +
+theme(axis.title.y = element_text(face = "bold", size = 14)) +
+ggtitle("Day 30") +
+scale_shape_manual(values = shape.def) +
+scale_fill_manual(values = colvec1, na.value = "#dddddd") +
+stat_ellipse(data = orddat[orddat$Diet == "HighCarb"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "HighFat"], aes(x = x, y = y)) +
+# stat_ellipse(data = orddat[orddat$Diet == "HighProtein"], aes(x=x,y=y)) +
+stat_ellipse(data = orddat[orddat$Diet == "Standard"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "Standard(-CDI)"], aes(x = x, y =
+y)) +
+theme_minimal()
+
+day30
+```
+
+```{r}
+# Filter Day 47 samples
+
+d47 <- subset_samples(pseq, Day == "47")
+d47
+
+colvec1 = c(
+"HighProtein" = "#FF0000",
+"HighCarb" = "#00B0F0",
+"HighFat" = "#9BBB59",
+"Standard" = "#6e01b2",
+"Standard(-CDI)" = "#b24b01"
+)
+set.seed(10)
+d47.bray <- ordinate(d47, "NMDS", "bray", maxit = 5000, k = 3)
+orddat = sample_data(d47)
+orddat$x = d47.bray$points[rownames(orddat), 1]
+orddat$y = d47.bray$points[rownames(orddat), 2]
+orddat$z = d47.bray$points[rownames(orddat), 3]
+
+shape.def = c(
+"HighProtein" = 21,
+"Standard" = 25,
+"Standard(-CDI)" = 24,
+"HighCarb" = 22,
+"HighFat" = 23
+)
+orddat = orddat[rev(order(orddat$HCDay)), ]
+day47 <- ggplot(data = orddat) +
+geom_point(size = 7,
+stroke = 1.5,
+aes(
+x = x,
+y = y,
+shape = as.character(Diet),
+fill = Diet
+)) +
+theme(axis.text.x = element_text(face = "bold", color = "black", size =
+14)) +
+theme(axis.text.y = element_text(face = "bold", color = "black", size =
+14)) +
+theme(axis.title.x = element_text(face = "bold", size = 14)) +
+theme(axis.title.y = element_text(face = "bold", size = 14)) +
+ggtitle("Day 47") +
+scale_shape_manual(values = shape.def) +
+scale_fill_manual(values = colvec1, na.value = "#dddddd") +
+stat_ellipse(data = orddat[orddat$Diet == "HighCarb"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "HighFat"], aes(x = x, y = y)) +
+# stat_ellipse(data = orddat[orddat$Diet == "HighProtein"], aes(x=x,y=y)) +
+stat_ellipse(data = orddat[orddat$Diet == "Standard"], aes(x = x, y =
+y)) +
+stat_ellipse(data = orddat[orddat$Diet == "Standard(-CDI)"], aes(x = x, y =
+y)) +
+theme_minimal()
+
+day47
+```
