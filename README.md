@@ -1,4 +1,4 @@
-#[A high-fat/high-protein, Atkins-type diet exacerbates *Clostridioides (Clostridium) difficile* infection in mice, whereas a high-carbohydrate diet protects] (https://msystems.asm.org/content/5/1/e00765-19)
+# [A high-fat/high-protein, Atkins-type diet exacerbates *Clostridioides (Clostridium) difficile* infection in mice, whereas a high-carbohydrate diet protects] (https://msystems.asm.org/content/5/1/e00765-19)
 
 **Overview**
 
